@@ -71,7 +71,7 @@ def api_list_conferences(request):
     # return JsonResponse({"conferences": response})
 
 
-def api_show_conference(request, id):
+
     """
     Returns the details for the Conference model specified
     by the id parameter.
@@ -80,6 +80,10 @@ def api_show_conference(request, id):
     ends, description, created, updated, max_presentations,
     max_attendees, and a dictionary for the location containing
     its name and href.
+
+
+
+
 
     {
         "name": the conference's name,
@@ -96,6 +100,9 @@ def api_show_conference(request, id):
         }
     }
     """
+
+
+def api_show_conference(request, id):
     conference = Conference.objects.get(id=id)
     return JsonResponse(
         conference,
@@ -121,8 +128,7 @@ def api_show_conference(request, id):
     # )
 
 
-def api_list_locations(request):
-    """
+"""
     Lists the location names and the link to the location.
 
     Returns a dictionary with a single key "locations" which
@@ -140,17 +146,34 @@ def api_list_locations(request):
         ]
     }
     """
-    response = []
-    locations = Location.objects.all()
-    for location in locations:
-        response.append({
-            "name": location.name,
-            "href": location.get_api_url(),
-        })
-    return JsonResponse({"locations": response})
+# def api_list_locations(request):
+#     response = []
+#     locations = Location.objects.all()
+#     for location in locations:
+#         response.append({
+#             "name": location.name,
+#             "href": location.get_api_url(),
+#         })
+#     return JsonResponse({"locations": response})
 
 
-def api_show_location(request, id):
+class ListLocationEncoder(ModelEncoder):
+    model = Location
+    properties = [
+        "name",
+    ]
+
+
+def api_list_locations(request):
+    location = Location.objects.all()
+    return JsonResponse(
+        {"location": location},
+        encoder=ListLocationEncoder,
+        safe=False
+    )
+
+
+# def api_show_location(request, id):
     """
     Returns the details for the Location model specified
     by the id parameter.
@@ -167,12 +190,35 @@ def api_show_location(request, id):
         "state": the two-letter abbreviation for the state,
     }
     """
-    locations = Location.objects.get(id=id)
-    return JsonResponse({
-        "name": locations.name,
-        "city": locations.city,
-        "room_count": locations.room_count,
-        "created": locations.created,
-        "updated": locations.updated,
-        "state": locations.state.abbreviation,
-    })
+    # locations = Location.objects.get(id=id)
+    # return JsonResponse({
+    #     "name": locations.name,
+    #     "city": locations.city,
+    #     "room_count": locations.room_count,
+    #     "created": locations.created,
+    #     "updated": locations.updated,
+    #     "state": locations.state.abbreviation,
+    # })
+
+
+class LocationDetailEncoder(ModelEncoder):
+    model = Location
+    properties = [
+        "name",
+        "city",
+        "room_count",
+        "created",
+        "updated",
+    ]
+
+    def get_extra_data(self, o):
+        return {"state": o.state.abbreviation}
+
+
+def api_show_location(request, id):
+    location = Location.objects.get(id=id)
+    return JsonResponse(
+        location,
+        encoder=LocationDetailEncoder,
+        safe=False,
+    )

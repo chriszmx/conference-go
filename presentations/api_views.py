@@ -5,7 +5,23 @@ from .models import Presentation
 from common.json import ModelEncoder
 
 
+class PresentationListEncoder(ModelEncoder):
+    model = Presentation
+    properties = [
+        "title",
+    ]
+
+    def get_extra_data(self, o):
+        return {"status": o.status.name}
+
+
 def api_list_presentations(request, conference_id):
+    presentations = Presentation.objects.filter(conference=conference_id)
+    return JsonResponse(
+        {"presentations": presentations},
+        encoder=PresentationListEncoder,
+    )
+# def api_list_presentations(request, conference_id):
     """
     Lists the presentation titles and the link to the
     presentation for the specified conference id.
@@ -27,15 +43,15 @@ def api_list_presentations(request, conference_id):
         ]
     }
     """
-    presentations = [
-        {
-            "title": p.title,
-            "status": p.status.name,
-            "href": p.get_api_url(),
-        }
-        for p in Presentation.objects.filter(conference=conference_id)
-    ]
-    return JsonResponse({"presentations": presentations})
+    # presentations = [
+    #     {
+    #         "title": p.title,
+    #         "status": p.status.name,
+    #         "href": p.get_api_url(),
+    #     }
+    #     for p in Presentation.objects.filter(conference=conference_id)
+    # ]
+    # return JsonResponse({"presentations": presentations})
 
 
 # def api_show_presentation(request, id):
