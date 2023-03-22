@@ -9,12 +9,30 @@ import json
 from .models import State
 
 
+@require_http_methods(["GET", "POST"])
 def api_list_conferences(request):
-    conferences = Conference.objects.all()
-    return JsonResponse(
-        {"conferences": conferences},
-        encoder=ConferenceListEncoder,
-    )
+    if request.method == "GET":
+        conferences = Conference.objects.all()
+        return JsonResponse(
+            {"conferences": conferences},
+            encoder=ConferenceListEncoder,
+        )
+    elif request.method == "POST":
+        content = json.loads(request.body)
+        try:
+            location = Location.objects.get(id=content["location"])
+            content["location"] = location
+        except Location.DoesNotExist:
+            return JsonResponse(
+                {"message": "Invalid location id"},
+                status=400,
+            )
+        conference = Conference.objects.create(**content)
+        return JsonResponse(
+            conference,
+            encoder=ConferenceDetailEncoder,
+            safe=False,
+        )
 
 
 def api_show_conference(request, id):
