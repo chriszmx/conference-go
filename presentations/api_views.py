@@ -2,6 +2,8 @@ from django.http import JsonResponse
 
 from .models import Presentation
 
+from common.json import ModelEncoder
+
 
 def api_list_presentations(request, conference_id):
     """
@@ -36,7 +38,7 @@ def api_list_presentations(request, conference_id):
     return JsonResponse({"presentations": presentations})
 
 
-def api_show_presentation(request, id):
+# def api_show_presentation(request, id):
     """
     Returns the details for the Presentation model specified
     by the id parameter.
@@ -61,17 +63,38 @@ def api_show_presentation(request, id):
         }
     }
     """
+    # presentation = Presentation.objects.get(id=id)
+    # return JsonResponse({
+    #     "presenter_name": presentation.presenter_name,
+    #     "company_name": presentation.company_name,
+    #     "presenter_email": presentation.presenter_email,
+    #     "title": presentation.title,
+    #     "synopsis": presentation.synopsis,
+    #     "created": presentation.created,
+    #     "status": presentation.status.name,
+    #     "conference": {
+    #         "name": presentation.conference.name,
+    #         "href": presentation.conference.get_api_url(),
+    #     }
+    # })
+
+
+class PresentationDetailEncoder(ModelEncoder):
+    model = Presentation
+    properties = [
+        "presenter_name",
+        "company_name",
+        "presenter_email",
+        "title",
+        "synopsis",
+        "created",
+    ]
+
+
+def api_show_presentation(request, id):
     presentation = Presentation.objects.get(id=id)
-    return JsonResponse({
-        "presenter_name": presentation.presenter_name,
-        "company_name": presentation.company_name,
-        "presenter_email": presentation.presenter_email,
-        "title": presentation.title,
-        "synopsis": presentation.synopsis,
-        "created": presentation.created,
-        "status": presentation.status.name,
-        "conference": {
-            "name": presentation.conference.name,
-            "href": presentation.conference.get_api_url(),
-        }
-    })
+    return JsonResponse(
+        presentation,
+        encoder=PresentationDetailEncoder,
+        safe=False,
+    )
