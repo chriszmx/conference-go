@@ -2,6 +2,14 @@ from django.db import models
 from django.urls import reverse
 
 
+@classmethod
+def create(cls, **kwargs):
+    kwargs['status'] = Status.objects.get(name="SUBMITTED")
+    presentation = cls(**kwargs)
+    presentation.save()
+    return presentation
+
+
 class Status(models.Model):
     """
     The Status model provides a status to a Presentation, which
