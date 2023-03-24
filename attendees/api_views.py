@@ -47,6 +47,7 @@ class ShowAttendeeEncoder(ModelEncoder):
         "name",
         "company_name",
         "created",
+        "conference",
     ]
     encoders = {
         "conference": ConferenceListEncoder(),
@@ -69,6 +70,14 @@ def api_show_attendee(request, id):
             )
     else:
         content = json.loads(request.body)
+        try:
+            conference = Conference.objects.get(name=content["conference"])
+            content["conference"] = conference
+        except Conference.DoesNotExist:
+            return JsonResponse(
+                {"message": "Invalid attendee name"},
+                status=400,
+            )
         Attendee.objects.filter(id=id).update(**content)
         attendee = Attendee.objects.get(id=id)
         return JsonResponse(
